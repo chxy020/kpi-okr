@@ -46,57 +46,56 @@
           <el-button type="text" class="ml-2">+ 新增</el-button>
         </el-row>
         <el-row>
-          <el-collapse v-model="activeName" accordion>
-            <el-collapse-item
+            <div  style="margin-bottom:10px;"
               v-for="item in okr.key_results"
               :key="item.krid"
               :name="item.krid"
               
             >
             <!-- :disabled="!isOwn" -->
-              <template slot="title">
-                <el-progress type="circle" :width="50" :percentage="item.progress" />
-                <span class="ml-1" v-text="'KR' + item.krid + '：' + item.kr" />
-                <el-tag class="ml-2" size="small" v-text="'信心指数：'+item.confidence+'/10'" />
-                <div class="rightBtn">
-                  <el-button type="text" class="ml-2" @click='pinglunFun'>查看评论</el-button>
-                  <el-button type="text" class="ml-2">编辑</el-button>
-                  <el-button type="text" class="ml-2">删除</el-button>
-                </div>
-              </template>
-              <template >
-                <!-- v-if="isOwn" -->
-                <el-row class="mb-1">
-                  <el-col :span="2">信心指数：</el-col>
-                  <el-col :span="10">
-                    <div class="block">
-                      <el-slider v-model="item.confidence" :min="1" :max="10" show-input />
-                    </div>
-                  </el-col>
-                </el-row>
-                <el-row class="mb-1">
-                  <el-col :span="2">当前进度：</el-col>
-                  <el-col :span="10">
-                    <div class="block">
-                      <el-slider v-model="item.progress" show-input />
-                    </div>
-                  </el-col>
-                </el-row>
-                <div>00000</div>
-              </template>
-            </el-collapse-item>
-          </el-collapse>
+            <div class="tabcard">
+                  <el-progress type="circle" :width="50" :percentage="item.progress" />
+                  <span class="ml-1" v-text="'KR' + item.krid + '：' + item.kr" />
+                  <el-tag class="ml-2" size="small" @click.native='setParamFun(item)' v-text="'信心指数：'+item.confidence+'/10'" />
+                  <div class="rightBtn">
+                    <el-button type="text" class="ml-2" @click.native='pinglunFun'>查看评论</el-button>
+                    <el-button type="text" class="ml-2">编辑</el-button>
+                    <el-button type="text" class="ml-2">删除</el-button>
+                  </div>
+                  <i class="rightArr el-icon-arrow-down"></i>
+              </div>
+                
+              <div class="tabcardCont" v-show="setParamShow"><!--  v-if="isOwn" 并且的关系-->
+                  <el-row class="mb-1">
+                    <el-col :span="2" class="tabcardCont-l">信心指数：</el-col>
+                    <el-col :span="10">
+                      <div class="block">
+                        <el-slider v-model="item.confidence" :min="1" :max="10" show-input />
+                      </div>
+                    </el-col>
+                  </el-row>
+                  <el-row class="mb-1">
+                    <el-col :span="2">当前进度：</el-col>
+                    <el-col :span="10">
+                      <div class="block">
+                        <el-slider v-model="item.progress" show-input />
+                      </div>
+                    </el-col>
+                  </el-row>
+              </div>
+
+
+          </div>
         </el-row>
       </div>
+
+
+
+      
     </el-drawer>
 
 
-<el-collapse v-model="activeNames" @change="handleChange">
-  <el-collapse-item title="一致性 Consistency" @click.native="aaa()">
-    <div>与现实生活一致：与现实生活的流程、逻辑保持一致，遵循用户习惯的语言和概念；</div>
-    <div>在界面中一致：所有的元素和结构需保持一致，比如：设计样式、图标和文本、元素的位置等。</div>
-  </el-collapse-item>
-</el-collapse>
+
 
 
   </div>
@@ -121,8 +120,9 @@ export default {
     return {
       dialog:'',
       activeName: '',
-      activeNames:'',
-      request_user_id: Cookies.get('request_user_id')
+      request_user_id: Cookies.get('request_user_id'),
+      setParamShow:false,
+
     }
   },
   computed: {
@@ -133,20 +133,31 @@ export default {
       return this.request_user_id === this.okr.user_id
     }
   },
+  mounted() {
+      
+  },
   methods: {
-    handleChange(){
-      console.log("==handleChangeadfaffaaaa====")
+// 阻止事件传播
+    stopProp: function (e) {
+      e.stopPropagation()
     },
-    aaa(){
-      console.log("vvvvvvvvv====")
+
+    setParamFun(item){
+      this.setParamShow=true;
+      console.log("item====",item);
+    },
+    zhishuFun(){
+      console.log("====信心指数：==")
     },
     pinglunFun(){
-      console.log("======")
+      console.log("====查看评论==")
     },
     handleClose(done) {
       console.log("this.okr.user_id===",this.okr.user_id);
+      console.log("this.okr",this.okr)
       this.$emit('dialog_show', false)
       done()
+
     },
     deleteOKR() {
       if (this.request_user_id !== this.okr.user_id) {
@@ -207,8 +218,13 @@ export default {
 
 .rightBtn{
     position: absolute;
-    right: 70px;
+    right: 40px;
     top: 12px;
+}
+.rightArr{
+  position: absolute;
+    right: 20px;
+    top: 25px;
 }
 .okr-content {
   margin: 3rem;
@@ -258,7 +274,7 @@ i {
 }
 .el-collapse-item__content,
 .el-collapse-item__header {
-  padding: 2rem !important;
+  padding: 0 2rem!important;
 }
 .el-collapse-item__header {
   border-bottom: 1px solid #ececec !important;
@@ -269,5 +285,51 @@ i {
 }
 .el-drawer__body {
   overflow: auto;
+}
+.tabcard{
+display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    height: 48px;
+    line-height: 48px;
+    background-color: #FFF;
+    color: #303133;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    -webkit-transition: border-bottom-color .3s;
+    transition: border-bottom-color .3s;
+    outline: 0;
+    border: 1px solid #ececec !important;
+    line-height: 33px !important;
+    height: 66px !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    position: relative;
+    border-radius:5px;
+    
+    padding:0 10px
+}
+.tabcardCont{
+position: relative;
+z-index: 10;
+  margin-top:-4px;
+  
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    background-color: #FFF;
+    color: #303133;
+    border: 1px solid #ececec !important;
+    border-top:1px solid #fff !important;
+    padding:30px 20px 20px;
+    border-radius:0 0 5px 5px
+}
+.tabcardCont-l{
+   line-height:40px;
+   font-size: 14px;
 }
 </style>

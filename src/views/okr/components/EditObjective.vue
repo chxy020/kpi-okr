@@ -47,7 +47,7 @@
         </el-row>
         <el-row>
             <div  style="margin-bottom:10px;"
-              v-for="item in okr.key_results"
+              v-for="(item,index) in okr.key_results"
               :key="item.krid"
               :name="item.krid"
               
@@ -56,16 +56,16 @@
             <div class="tabcard">
                   <el-progress type="circle" :width="50" :percentage="item.progress" />
                   <span class="ml-1" v-text="'KR' + item.krid + '：' + item.kr" />
-                  <el-tag class="ml-2" size="small" @click.native='setParamFun(item)' v-text="'信心指数：'+item.confidence+'/10'" />
+                  <el-tag class="ml-2" size="small" @click.native='setParamFun(item,index)' v-text="'信心指数：'+item.confidence+'/10'" />
                   <div class="rightBtn">
-                    <el-button type="text" class="ml-2" @click.native='pinglunFun'>查看评论</el-button>
+                    <el-button type="text" class="ml-2" @click.native='pinglunFun(item,index)'>查看评论</el-button>
                     <el-button type="text" class="ml-2">编辑</el-button>
                     <el-button type="text" class="ml-2">删除</el-button>
                   </div>
                   <i class="rightArr el-icon-arrow-down"></i>
               </div>
                 
-              <div class="tabcardCont" v-show="setParamShow"><!--  v-if="isOwn" 并且的关系-->
+              <div class="tabcardCont" :class="checkIndex == index && 'curr'"><!--  v-if="isOwn" 并且的关系-->
                   <el-row class="mb-1">
                     <el-col :span="2" class="tabcardCont-l">信心指数：</el-col>
                     <el-col :span="10">
@@ -82,6 +82,77 @@
                       </div>
                     </el-col>
                   </el-row>
+              </div>
+              <div class="assd" :class="tcIndex == index && 'curr'">
+                  <div class="assd-bt">
+                    <div class="assd-bt-left">
+                      关于<span v-text="'KR' + item.krid + '：' + item.kr" />的评论留言
+                    </div>
+                    <div class="assd-bt-right">
+                      <el-button type="primary" size="mini">新建留言</el-button>
+                    </div>
+                  </div>
+                  <div class="assd-bt border_b">
+                    <div class="assd-bt-left">
+                      <span>1# 赵胜艳</span>
+                    </div>
+                    <div class="assd-bt-right">
+                      2020-09-02 12：10
+                    </div>
+                  </div>
+                  <div class="border_b">
+                    <div class="textCont">内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，容内容，内容内容，内容内容，容内容，内容内容，内容内容，容内容，内容内容，内容内容，容内容，内容内容，内容内容，容内容，内容内容，内容内容，</div>
+                    <div class="textfile">
+                      <div class="textfile-item">
+                        <i class="el-icon-document"></i>
+                        <p>文本.txt</p>
+                        <p>21.kb<span>点击下载</span></p>
+                      </div>
+                      <div class="textfile-item">
+                        <i class="el-icon-document"></i>
+                        <p>文本文本文本文本文本文本文本文本.docx</p>
+                        <p>8.9m<span>点击下载</span></p>
+                      </div>
+                      <div class="textfile-item">
+                        <i class="el-icon-document"></i>
+                        <p>文本.txt</p>
+                        <p>21.kb<span>点击下载</span></p>
+                      </div>
+                      <div class="textfile-item">
+                        <i class="el-icon-document"></i>
+                        <p>文本.txt</p>
+                        <p>21.kb<span>点击下载</span></p>
+                      </div>
+                    </div>
+                    <div class="textbtn">
+                      <span>编辑</span><span>回复</span><span>删除</span>
+                    </div>
+                  </div>
+                  <div class="assd-bt border_b">
+                    <div class="assd-bt-left">
+                      <span>2# 陈宣宇</span>
+                    </div>
+                    <div class="assd-bt-right">
+                      2020-09-02 12：10
+                    </div>
+                  </div>
+                  <div class="border_b">
+                    <div class="textCont">内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，内容内容，容内容，内容内容，内容内容，容内容，内容内容，内容内容，容内容，内容内容，内容内容，容内容，内容内容，内容内容，容内容，内容内容，内容内容，</div>
+                    
+                  </div>
+                  <div class="assd-bt">
+                    <div class="assd-bt-left">
+                      <el-pagination
+                        small
+                        layout="pager"
+                        :total="50"
+                        style="margin-left:-10px">
+                      </el-pagination>
+                    </div>
+                    <div class="assd-bt-right">
+                      <el-button type="primary" size="mini">新建留言</el-button>
+                    </div>
+                  </div>
               </div>
 
 
@@ -122,7 +193,8 @@ export default {
       activeName: '',
       request_user_id: Cookies.get('request_user_id'),
       setParamShow:false,
-
+      checkIndex: null,
+      tcIndex: null
     }
   },
   computed: {
@@ -134,7 +206,7 @@ export default {
     }
   },
   mounted() {
-      
+      console.log('okr ==', this.okr.key_results)
   },
   methods: {
 // 阻止事件传播
@@ -142,14 +214,19 @@ export default {
       e.stopPropagation()
     },
 
-    setParamFun(item){
+    setParamFun(item, index){
+      this.checkIndex = index
+      this.tcIndex = null
       this.setParamShow=true;
       console.log("item====",item);
     },
     zhishuFun(){
       console.log("====信心指数：==")
     },
-    pinglunFun(){
+    pinglunFun(item, index){
+      this.checkIndex = null
+      this.tcIndex = index
+
       console.log("====查看评论==")
     },
     handleClose(done) {
@@ -215,7 +292,90 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.assd {
+  display: none;
+position: relative;
+z-index: 10;
+  margin-top:-4px;
+  
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    background-color: #FFF;
+    color: #303133;
+    border: 1px solid #ececec !important;
+    border-top:1px solid #fff !important;
+    padding:10px 20px 20px;
+    border-radius:0 0 5px 5px;
+    font-size: 12px;
+}
+.assd.curr {
+  display: block;
+}
 
+
+.assd-bt {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;}
+.assd-bt .assd-bt-left{
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+     color: #999;
+     line-height: 28px;
+
+}
+.assd-bt .assd-bt-left span{
+  margin:0 3px;
+  
+  color: #333;
+    
+}
+.assd-bt .assd-bt-right {
+    background-color: transparent;
+    line-height: 28px;
+}
+.textCont {
+    line-height: 160%;
+    margin-bottom: 10px;
+}
+.border_b{border-bottom: 1px solid #ececec;margin:10px 0}
+
+.textfile{display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    margin:10px 0}
+.textfile-item{
+     color: #333;
+     line-height: 28px;
+     width: 33.3%;
+}
+.textfile-item i{
+  float: left;
+  font-size: 40px;
+  padding:0 0 20px;
+}
+.textfile-item p{
+  margin:0;
+  margin-left:45px;
+  line-height: 20px;
+  font-size: 12px;
+}
+.textfile-item p span{
+  color: #409EFF;
+  cursor: pointer;
+}
+.textbtn{
+  text-align: right;
+  margin-bottom: 10px;
+}
+.textbtn span{
+  margin:0 4px;
+  color: #409EFF;
+  cursor: pointer;
+
+}
 .rightBtn{
     position: absolute;
     right: 40px;
@@ -314,6 +474,7 @@ display: -webkit-box;
     padding:0 10px
 }
 .tabcardCont{
+  display: none;
 position: relative;
 z-index: 10;
   margin-top:-4px;
@@ -327,6 +488,9 @@ z-index: 10;
     border-top:1px solid #fff !important;
     padding:30px 20px 20px;
     border-radius:0 0 5px 5px
+}
+.tabcardCont.curr {
+  display: block;
 }
 .tabcardCont-l{
    line-height:40px;

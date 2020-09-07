@@ -43,7 +43,7 @@
         <el-row class="mb-1" type="flex" justify="start" align="middle">
           <i class="el-icon-s-flag" />
           <span class="ml-1" v-text="'Key Results (' + okr.key_results.length + ')'" />
-          <el-button type="text" class="ml-2">+ 新增</el-button>
+          <el-button type="text" class="ml-2" @click='newResultsFun()'>+ 新增</el-button>
         </el-row>
         <el-row>
             <div  style="margin-bottom:10px;"
@@ -166,7 +166,18 @@
     </el-drawer>
 
 
-
+    <!--新建KeyResults 弹框-->
+    <el-dialog title="新建 Key Results" :visible.sync="newResultsPop">
+      <el-form :model="newResultsForm" :rules="newResultsForm" ref="newResultsForm" label-width="80px">
+        <el-form-item  label="名称" prop="companyName">
+          <el-input v-model="newResultsForm.kr"  placeholder="请输入新建 Key Results的名称" :maxlength="50"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="newResultsBtnFun">提 交</el-button>
+        <el-button @click="newResultsPop = false">关 闭</el-button>
+      </div>
+    </el-dialog>
 
 
   </div>
@@ -176,6 +187,7 @@
 import Cookies from 'js-cookie'
 import service from '@/utils/request'
 import eventBus from '@/utils/eventBus'
+import { apiAgreementList } from '@/api/data.js'
 export default {
   props: {
     dialog: {
@@ -194,7 +206,11 @@ export default {
       request_user_id: Cookies.get('request_user_id'),
       setParamShow:false,
       checkIndex: null,
-      tcIndex: null
+      tcIndex: null,
+      newResultsForm: {
+        kr:''
+      },
+      newResultsPop:false,
     }
   },
   computed: {
@@ -213,6 +229,15 @@ export default {
     stopProp: function (e) {
       e.stopPropagation()
     },
+    //新建KeyResults
+    newResultsFun:function(){
+      this.newResultsPop = true;
+    },
+    //提交新建
+    newResultsBtnFun:function(){
+      
+    },
+
 
     setParamFun(item, index){
       this.checkIndex = index

@@ -148,6 +148,7 @@ export default {
           service
             .request({
               url: '/addokr',
+              // url: 'http://192.168.3.31:9528/api/kpi/v1/addokr',
               method: 'post',
               data: {
                 objective: form.objective,

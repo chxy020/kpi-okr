@@ -89,7 +89,7 @@
                       关于<span v-text="'KR' + item.krid + '：' + item.kr" />的评论留言
                     </div>
                     <div class="assd-bt-right">
-                      <el-button type="primary" size="mini">新建留言</el-button>
+                      <el-button type="primary" size="mini" @click.native='addpinglunFun(item,index)'>新建留言</el-button>
                     </div>
                   </div>
                   <div class="assd-bt border_b">
@@ -167,7 +167,7 @@
 
 
     <!--新建KeyResults 弹框-->
-    <el-dialog title="新建 Key Results" :visible.sync="newResultsPop">
+    <!-- <el-dialog title="新建 Key Results" :visible.sync="newResultsPop">
       <el-form :model="newResultsForm" :rules="newResultsForm" ref="newResultsForm" label-width="80px">
         <el-form-item  label="名称" prop="companyName">
           <el-input v-model="newResultsForm.kr"  placeholder="请输入新建 Key Results的名称" :maxlength="50"></el-input>
@@ -177,8 +177,50 @@
         <el-button type="primary" @click="newResultsBtnFun">提 交</el-button>
         <el-button @click="newResultsPop = false">关 闭</el-button>
       </div>
-    </el-dialog>
+    </el-dialog> -->
 
+    <!--评论 弹框-->
+    <el-dialog title="新建留言" :visible.sync="addPinglunPop">
+      <el-form :model="newPinglunFormZ" :rules="newPinglunRulesForm" ref="newPinglunForm" label-width="80px">
+        <el-form-item label="留言内容" prop="contentA">
+          <el-input
+            type="textarea"
+            :rows="2"
+            placeholder="请输入内容"
+            v-model="newPinglunForm.contentA">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="附件">
+            <el-upload
+              class="upload-demo"
+              :action='uploadFileHost'
+              :on-preview="handlePreview"
+              :on-remove="handleRemoveUpload"
+              :before-remove="beforeRemove"
+              multiple
+              :headers=headers
+              :name = "name"
+              :data = "params"
+              :before-upload = "beforeUpload"
+              :on-exceed="handleExceed"
+              :on-success = "onSuccess"
+              :file-list="fileList">
+              <el-button size="small" type="success">点击上传</el-button>
+              <div slot="tip" class="el-upload__tip">请确认无误后再上传，可上传多个文件，大小不限，pdf、word、excel或图片类型的文件！</div>
+            </el-upload>
+        </el-form-item>
+
+
+      </el-form>
+
+
+
+
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="newPinglunBtnFun">提 交</el-button>
+        <el-button @click="addPinglunPop = false">关 闭</el-button>
+      </div>
+    </el-dialog>
 
   </div>
 </template>
@@ -197,7 +239,10 @@ export default {
     okr: {
       type: Object,
       default: null
-    }
+    },
+    
+
+ 
   },
   data() {
     return {
@@ -211,6 +256,38 @@ export default {
         kr:''
       },
       newResultsPop:false,
+      
+      searchForm:{
+        id:5,
+        kr: "在上海、深圳、杭州、苏州等南方大城市注册----",
+        krid: 3, 
+        progress: 0, 
+        confidence: 5
+      },
+      //评论
+      addPinglunPop:false,
+      newPinglunFormZ:{
+        contentA:''
+      },
+      
+      newPinglunRulesForm:{
+          //必填项
+          contentA:[
+            { required : true, message: '请输入留言内容！'}
+          ]
+      },
+      //上传文件 传数组 上传文件多个
+        headers: {username: this.getUsername()},
+        name:"file",//file不变
+        params:{},
+        fileList: [],
+        //uploadId:[],
+        uploadFileHost: HOST2 + '/file/upload',
+        //提交接口
+        uploadUrl:'',
+        //提交接口
+        isDisabled:false,
+        RcontractChanges:false,
     }
   },
   computed: {
@@ -223,19 +300,208 @@ export default {
   },
   mounted() {
       console.log('okr ==', this.okr.key_results)
+      console.log('okr ==', this.okr)//okr id
   },
   methods: {
 // 阻止事件传播
     stopProp: function (e) {
       e.stopPropagation()
     },
+
+
+/*---------上传附件 合同相关附件 传数组---------*/
+      onSuccess(response, file, fileList){
+        let o = {};
+        o.name = response.fileName + response.fileNameExt;
+        let t = response.filePath;
+        let arr = t.split('//');
+        response.filePath = `/${arr[1]}`;
+        o.url = response.filePath;
+        this.addClueForm.files.push(o);
+        //console.log("name"+JSON.stringify(this.addClueForm.files));
+      },
+      beforeUpload(file){
+        const isJPG = file.name.indexOf('.xls') != -1 || file.name.indexOf('.xlsx') != -1 || file.name.indexOf('.doc') != -1 || file.name.indexOf('.docx') != -1 || file.name.indexOf('.jpg') != -1 || file.name.indexOf('.jpeg') != -1 || file.name.indexOf('.pdf') != -1 || file.name.indexOf('.png') != -1 || file.name.indexOf('.gif') != -1;
+        const isLt2M = file.size / 1024 / 1024 < 10;
+        if (!isJPG) {
+          this.$message({
+            type: 'error',
+            message: '上传文件只能是pdf、word、excel或图片类型的文件！',
+            customClass: 'top200',
+          });
+        }
+        if (!isLt2M) {
+          this.$message({
+            type: 'error',
+            message: '上传文件大小不能超过 10MB!',
+            customClass: 'top200',
+          });
+        }
+        return isJPG && isLt2M;
+        return isLt2M;
+      },
+      handleRemoveUpload(file, fileList) {
+        /*console.log("=======================")
+         console.log("删除操作file===="+JSON.stringify(file))
+         console.log("删除操作fileList===="+JSON.stringify(file))
+         console.log("=======================")*/
+        let deleteUD = file.id;
+        //let deleteUD = file.response.fileName + file.response.fileNameExt;
+        let productFileIdsArr=this.addClueForm.files;
+        for(var i in productFileIdsArr) {
+          if(productFileIdsArr[i].name == deleteUD) {
+            productFileIdsArr.splice(i,1);
+          }
+        }
+        this.addClueForm.files=productFileIdsArr;
+        this.fileList = fileList;
+        /*console.log("删除操作后=files==="+JSON.stringify(this.addClueForm.files))
+         console.log("删除操作后=file==="+JSON.stringify(this.file))
+         console.log("删除操作后=fileList==="+JSON.stringify(this.fileList))
+         console.log("=======================")*/
+        if(file.id){
+          let url = HOST2 + "/file/del?id="+deleteUD;
+          this.$resource(url).get().then((response) => {
+            if (response.body.code == '200') {
+              console.log("删除成功")
+            }
+          })
+        }
+      },
+      handlePreview(file) {
+      },
+      handleExceed(files, fileList) {
+        //this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+        this.$message({
+          type: 'warning',
+          message: `当前限制上传5个文件，，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`,
+          customClass: 'top200',
+        });
+      },
+      beforeRemove(file, fileList) {
+        return this.$confirm(`确定移除 ${ file.name }？`);
+      },
+
+    addpinglunFun:function(){
+      this.addPinglunPop = true;
+    },
+/*---------提交---------*/
+      newPinglunBtnFun(){
+        // console.log("传参数 接口===="+this.uploadUrl);
+        if(this.RcontractChanges){this.addClueForm.isChange=1}
+        var that = this;
+        this.$refs[newPinglunRulesForm].validate((valid) => {
+          //生效日期不能大于截止日期
+          this.changeEnd();
+          if (valid) {
+            //禁止连续点击
+            this.isDisable = true;
+            setTimeout(() => {
+              this.isDisable = false
+            }, 1000);
+            this.loading = true;
+            //回显时，有多余字段，合同去多余字段
+            let contractFileTJ = this.addClueForm.contractFile;
+            let contractFileTJnew = {};
+            contractFileTJnew.id = contractFileTJ.id;
+            contractFileTJnew.name = contractFileTJ.name;
+            contractFileTJnew.url = contractFileTJ.url;
+            //回显时，有多余字段，合同附件去多余字段
+            let filesArr = this.addClueForm.files;
+            let filesArrnew = [];
+            for(var i in filesArr) {
+              if(filesArr[i].name){
+                let o = {};
+                o.id = filesArr[i].id;
+                o.name = filesArr[i].name;
+                o.url = filesArr[i].url;
+                filesArrnew.push(o);
+              }
+            }
+            let purchaseInfoVo = {};
+            this.addClueForm.contractFile = contractFileTJnew;
+            this.addClueForm.files = filesArrnew;
+            /* console.log("=============================");
+             console.log("提交==contractFile处理后===="+JSON.stringify(this.addClueForm.contractFile));
+             console.log("提交==files处理后===="+JSON.stringify(this.addClueForm.files));
+             console.log("=============================");*/
+            this.addClueForm.start = this.yeartampConversion(this.addClueForm.start);
+            this.addClueForm.end = this.yeartampConversion(this.addClueForm.end);
+            this.addClueForm.signDate = this.yeartampConversion(this.addClueForm.signDate);
+            //this.addClueForm.parentId = this.$route.query.id;
+            this.addClueForm.status = "待定";
+            for (let i in this.addClueForm) {
+              if (this.addClueForm[i] !== '') {
+                purchaseInfoVo[i] = this.addClueForm[i];
+              }
+            }
+            purchaseInfoVo=JSON.stringify(purchaseInfoVo);//转为JSON传值
+            // console.log("传参数 接口===="+this.uploadUrl);
+             console.log("传参数===="+purchaseInfoVo);
+             //return false
+            this.$resource(this.uploadUrl).save({},purchaseInfoVo).then((response) => {
+              this.loading = false;
+              if (response.body.code == '200') {
+                if(this.$route.query.id){
+                  this.$message({
+                    type: 'success',
+                    message: '修改成功',
+                    customClass: 'top200',
+                    duration:1000
+                  });
+                }else{
+                  this.$message({
+                    type: 'success',
+                    message: '添加成功',
+                    customClass: 'top200',
+                    duration:1000
+                  });
+                }
+                this.loading = false;
+                this.fileList2 = [];
+                this.fileList = [];
+                this.addClueForm.contractFile={};
+                this.addClueForm.files=[];
+                if(this.$route.query.id || this.$route.query.parentId){
+                  setTimeout(function() {
+                    that.$router.go(-1);
+                  },1000);
+                }else{
+                  this.resetFormAdd();
+                }
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: response.body.message,
+                  customClass: 'top200',
+                });
+              }
+            });
+          }else {
+            return false;
+          }
+        })
+      },
     //新建KeyResults
     newResultsFun:function(){
       this.newResultsPop = true;
     },
     //提交新建
     newResultsBtnFun:function(){
-      
+            console.log("====提交新建==")
+            apiAgreementList(this.searchForm).then(res => {
+                console.log("res--",res);
+                if (res.data.code == "200") {
+                    console.log("this.searchForm--",this.searchForm);
+                    console.log("0000");
+                } else {
+                    // this.$toast({
+                    //     message: '网络出错了，请稍后重试',
+                    //     type: 'wrong',
+                    //     duration: '2000'
+                    // })
+                }
+            });
     },
 
 
@@ -252,7 +518,11 @@ export default {
       this.checkIndex = null
       this.tcIndex = index
 
-      console.log("====查看评论==")
+      
+
+
+
+
     },
     handleClose(done) {
       console.log("this.okr.user_id===",this.okr.user_id);

@@ -1,5 +1,4 @@
 <template>
-<div>
   <div @click.stop>
     <el-drawer
       title="OKR详情"
@@ -44,7 +43,7 @@
         <el-row class="mb-1" type="flex" justify="start" align="middle">
           <i class="el-icon-s-flag" />
           <span class="ml-1" v-text="'Key Results (' + okr.key_results.length + ')'" />
-          <el-button type="text" class="ml-2">+ 新增</el-button>
+          <el-button type="text" class="ml-2" @click='newResultsFun()'>+ 新增</el-button>
         </el-row>
         <el-row>
             <div  style="margin-bottom:10px;"
@@ -60,8 +59,8 @@
                   <el-tag class="ml-2" size="small" @click.native='setParamFun(item,index)' v-text="'信心指数：'+item.confidence+'/10'" />
                   <div class="rightBtn">
                     <el-button type="text" class="ml-2" @click.native='pinglunFun(item,index)'>查看评论</el-button>
-                    <el-button type="text" class="ml-2" @click.native="editResultsFun(item)">编辑</el-button>
-                    <el-button type="text" class="ml-2" @click.native="delResultsFun(item)">删除</el-button>
+                    <el-button type="text" class="ml-2" @click="editResultsFun(item)">编辑</el-button>
+                    <el-button type="text" class="ml-2">删除</el-button>
                   </div>
                   <i class="rightArr el-icon-arrow-down"></i>
               </div>
@@ -90,7 +89,7 @@
                       关于<span v-text="'KR' + item.krid + '：' + item.kr" />的评论留言
                     </div>
                     <div class="assd-bt-right">
-                      <el-button type="primary" size="mini" @click.native="addLiuYanShowFun(item)">新建留言</el-button>
+                      <el-button type="primary" size="mini" @click.native='addpinglunFun(item,index)'>新建留言</el-button>
                     </div>
                   </div>
                   <div class="assd-bt border_b">
@@ -158,35 +157,47 @@
           </div>
         </el-row>
       </div>
+      
     </el-drawer>
-  </div>
-  <!--编辑KeyResults弹框-->
-  <el-dialog title="编辑" :visible.sync="editResultsPop">
-    <el-form :model="editResultsForm" :rules="editResultsRules" ref="editResultsForm" label-width="80px">
-      <el-form-item  label="名称" prop="editKr">
-        <el-input v-model="editResultsForm.editKr"  placeholder="请输入新建 Key Results的名称" :maxlength="50"></el-input>
-      </el-form-item>
-    </el-form>
-    <div slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="editResultsBtnFun">提 交</el-button>
-      <el-button @click="editResultsPop = false">关 闭</el-button>
-    </div>
-  </el-dialog>
-  <!--删除KeyResults弹框--> 
-  <el-dialog title="删除" :visible.sync="delResultsPop">
-    <div>确认删除 {{delResultsText.resKr}} 吗？删除后，无法恢复！</div>
-    <div slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="delResultsBtnFun">确 认</el-button>
-      <el-button @click="delResultsPop = false">关 闭</el-button>
-    </div>
-  </el-dialog>
-  <!--新建留言 弹框-->
-  <el-dialog title="新建留言" :visible.sync="addLiuYanPop">
-    <el-form :model="addLiuYanForm" :rules="addLiuYanRules" ref="addLiuYanForm" label-width="80px">
-      <el-form-item  label="名称" prop="liuyanText">
-        <el-input type="textarea" :rows="4" placeholder="请输入留言内容" v-model="addLiuYanForm.liuyanText" :maxlength="1000"></el-input>
-      </el-form-item>
-      <el-form-item  label="附件">
+
+    <!--新建KeyResults 弹框-->
+    <!-- <el-dialog title="新建 Key Results" :visible.sync="newResultsPop">
+      <el-form :model="newResultsForm" :rules="newResultsRules" ref="newResultsForm" label-width="80px">
+          <el-form-item  label="名称" prop="kr">
+            <el-input v-model="newResultsForm.kr"  placeholder="请输入新建 Key Results的名称" :maxlength="50"></el-input>
+          </el-form-item>
+          <div slot="footer" class="dialog-footer">
+            <el-button type="primary" :disabled="isDisable" @click="newResultsBtnFun">提 交</el-button>
+            <el-button @click="newResultsPop = false">关 闭</el-button>
+          </div>
+      </el-form>
+    </el-dialog> -->
+
+    <!--编辑KeyResults弹框-->
+    <!-- <el-dialog title="编辑" :visible.sync="editResultsPop">
+      <el-form :model="editResultsForm" :rules="editResultsForm" ref="editResultsForm" label-width="80px">
+        <el-form-item  label="名称" prop="kr">
+          <el-input v-model="editResultsForm.kr"  placeholder="请输入新建 Key Results的名称" :maxlength="50"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="editResultsBtnFun">提 交</el-button>
+        <el-button @click="editResultsPop = false">关 闭</el-button>
+      </div>
+    </el-dialog> -->
+
+    <!--评论 弹框-->
+    <!-- <el-dialog title="新建留言" :visible.sync="addPinglunPop">
+      <el-form :model="newPinglunFormZ" :rules="newPinglunRulesForm" ref="newPinglunForm" label-width="80px">
+        <el-form-item label="留言内容" prop="contentA">
+          <el-input
+            type="textarea"
+            :rows="2"
+            placeholder="请输入内容"
+            v-model="newPinglunForm.contentA">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="附件">
             <el-upload
               class="upload-demo"
               :action='uploadFileHost'
@@ -204,22 +215,21 @@
               <el-button size="small" type="success">点击上传</el-button>
               <div slot="tip" class="el-upload__tip">请确认无误后再上传，可上传多个文件，大小不限，pdf、word、excel或图片类型的文件！</div>
             </el-upload>
-      </el-form-item>
-    </el-form>
-    <div slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="addLiuYanBtnFun">提 交</el-button>
-      <el-button @click="addLiuYanPop = false">关 闭</el-button>
-    </div>
-  </el-dialog>
-
-</div>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="newPinglunBtnFun">提 交</el-button>
+        <el-button @click="addPinglunPop = false">关 闭</el-button>
+      </div>
+    </el-dialog> -->
+  </div>
 </template>
 
 <script>
 import Cookies from 'js-cookie'
 import service from '@/utils/request'
 import eventBus from '@/utils/eventBus'
-import { editResultsApiPost,delResultsApiGet } from '@/api/data.js'
+import { apiAgreementList } from '@/api/data.js'
 export default {
   props: {
     dialog: {
@@ -229,61 +239,70 @@ export default {
     okr: {
       type: Object,
       default: null
-    }
+    },
   },
   data() {
     return {
-      // dialog:'',
+      dialog:'',
       activeName: '',
       request_user_id: Cookies.get('request_user_id'),
       setParamShow:false,
       checkIndex: null,
       tcIndex: null,
+
+      isDisable: false,//禁止连续点击提交
+      //新建 没接口
+      newResultsPop:false,
+      newResultsForm:{
+          kr :'',
+        },
+      newResultsRules:{
+          //必填项
+          kr:[
+            { required : true, message: '请输入留言内容！'}
+          ]
+      },
+
+
+
+      searchForm:{
+        id:"",
+        kr: "",
+        krid: "", 
+        progress:"",
+        confidence: "",
+      },
       //编辑
       editResultsPop:false,
-      editResultsFormOld:{
-        editKr:''
-      },
-      editResultsForm:{
-        editKr:''
-      },
-      editResultsRules:{
-        editKr:[
-          { required : true, message: '任务必填！'}
-        ]
-      },
-      //删除
-      delResultsPop:false,
-      delResultsText:{
-        id:this.okr.id,
-        krid:'',
-        resKr:'',
-      },
-      //新建留言
-      addLiuYanPop:false,
-      addLiuYanForm:{
-        liuyanText:'',
-        files : [],//合同相关附件 数组
-      },
-      addLiuYanRules:{
-        liuyanText:[
-          { required : true, message: '请输入内容！'}
-        ]
-      },
 
+
+
+
+
+      //评论
+      addPinglunPop:false,
+      newPinglunFormZ:{
+        contentA:''
+      },
+      
+      // newResultsRules:{
+      //     //必填项
+      //     contentA:[
+      //       { required : true, message: '请输入留言内容！'}
+      //     ]
+      // },
       //上传文件 传数组 上传文件多个
-      headers: {username: this.getUsername()},
-      name:"file",//file不变
-      params:{},
-      fileList: [],
-      //uploadId:[],
-      uploadFileHost: HOST2 + '/file/upload',
-      //提交接口
-      uploadUrl:'',
-
-
-
-
+        // headers: {username: this.getUsername()},
+        name:"file",//file不变
+        params:{},
+        fileList: [],
+        //uploadId:[],
+        uploadFileHost: HOST2 + '/file/upload',
+        //提交接口
+        uploadUrl:'',
+        //提交接口
+        isDisabled:false,
+        RcontractChanges:false,
     }
   },
   computed: {
@@ -296,74 +315,16 @@ export default {
   },
   mounted() {
       console.log('okr ==', this.okr.key_results)
+      console.log('okr ==', this.okr)//okr id
   },
   methods: {
-    // 编辑
-    editResultsFun:function(item){
-      this.editResultsPop = true;
-      this.editResultsFormOld.editKr=item.kr;
-      this.editResultsForm.editKr=item.kr;
-      this.editResultsForm.id = this.okr.id;
-      this.editResultsForm.krid=item.krid;
-      this.editResultsForm.progress=item.progress;
-      this.editResultsForm.confidence=item.confidence;
+// 阻止事件传播
+    stopProp: function (e) {
+      e.stopPropagation()
     },
-    editResultsBtnFun:function(){
-        console.log("0000")
-        if(this.editResultsFormOld.editKr==this.editResultsForm.editKr){
-            console.log("1111")
-            this.editResultsPop = false;
-            return
-        }else{
-          this.editResultsForm.kr=this.editResultsForm.editKr;
-          delete this.editResultsForm.editKr
-           editResultsApiPost(this.editResultsForm).then(res => {
-                if (res.data.code == "0") {
-                    this.$message({
-                      type: 'success',
-                      message: '修改成功',
-                      customClass: 'top200',
-                      duration:1000
-                    });
-                    this.editResultsPop = false;
-                } else {
-                    this.$message({
-                        message: '网络出错！',
-                        type: 'warning'
-                    });
-                }
-            });
-        }
-    },
-    // 删除
-    delResultsFun:function(item){
-      this.delResultsPop = true;
-      this.delResultsText.resKr = item.kr;
-      this.delResultsText.krid = item.krid;
-    },
-    delResultsBtnFun:function(){
-        delete this.delResultsText.resKr
-        delResultsApiGet({ params: this.delResultsText }).then(res => {
-            if (res.data.code == "0") {
-                this.$message({
-                    type: 'success',
-                    message: '修改成功',
-                    customClass: 'top200',
-                    duration:1000
-                  });
-                  this.delResultsPop = false;
-            } else {
-                this.$message({
-                    message: '网络出错！',
-                    type: 'warning'
-                });
-            }
-        });
-    },
-    //新建留言
-    addLiuYanShowFun:function(item){
-      this.addLiuYanPop = true;
-    },
+
+
+
 /*---------上传附件 合同相关附件 传数组---------*/
       onSuccess(response, file, fileList){
         let o = {};
@@ -436,8 +397,137 @@ export default {
       beforeRemove(file, fileList) {
         return this.$confirm(`确定移除 ${ file.name }？`);
       },
-/*---------上传附件 合同相关附件 传数组---------*/
 
+    addpinglunFun:function(){
+      this.addPinglunPop = true;
+    },
+    /*---------提交---------*/
+      newPinglunBtnFun(){
+        // console.log("传参数 接口===="+this.uploadUrl);
+        if(this.RcontractChanges){this.addClueForm.isChange=1}
+        var that = this;
+        this.$refs[newPinglunRulesForm].validate((valid) => {
+          //生效日期不能大于截止日期
+          this.changeEnd();
+          if (valid) {
+            //禁止连续点击
+            this.isDisable = true;
+            setTimeout(() => {
+              this.isDisable = false
+            }, 1000);
+            this.loading = true;
+            //回显时，有多余字段，合同去多余字段
+            let contractFileTJ = this.addClueForm.contractFile;
+            let contractFileTJnew = {};
+            contractFileTJnew.id = contractFileTJ.id;
+            contractFileTJnew.name = contractFileTJ.name;
+            contractFileTJnew.url = contractFileTJ.url;
+            //回显时，有多余字段，合同附件去多余字段
+            let filesArr = this.addClueForm.files;
+            let filesArrnew = [];
+            for(var i in filesArr) {
+              if(filesArr[i].name){
+                let o = {};
+                o.id = filesArr[i].id;
+                o.name = filesArr[i].name;
+                o.url = filesArr[i].url;
+                filesArrnew.push(o);
+              }
+            }
+            let purchaseInfoVo = {};
+            this.addClueForm.contractFile = contractFileTJnew;
+            this.addClueForm.files = filesArrnew;
+            /* console.log("=============================");
+             console.log("提交==contractFile处理后===="+JSON.stringify(this.addClueForm.contractFile));
+             console.log("提交==files处理后===="+JSON.stringify(this.addClueForm.files));
+             console.log("=============================");*/
+            this.addClueForm.start = this.yeartampConversion(this.addClueForm.start);
+            this.addClueForm.end = this.yeartampConversion(this.addClueForm.end);
+            this.addClueForm.signDate = this.yeartampConversion(this.addClueForm.signDate);
+            //this.addClueForm.parentId = this.$route.query.id;
+            this.addClueForm.status = "待定";
+            for (let i in this.addClueForm) {
+              if (this.addClueForm[i] !== '') {
+                purchaseInfoVo[i] = this.addClueForm[i];
+              }
+            }
+            purchaseInfoVo=JSON.stringify(purchaseInfoVo);//转为JSON传值
+            // console.log("传参数 接口===="+this.uploadUrl);
+             console.log("传参数===="+purchaseInfoVo);
+             //return false
+            this.$resource(this.uploadUrl).save({},purchaseInfoVo).then((response) => {
+              this.loading = false;
+              if (response.body.code == '200') {
+                if(this.$route.query.id){
+                  this.$message({
+                    type: 'success',
+                    message: '修改成功',
+                    customClass: 'top200',
+                    duration:1000
+                  });
+                }else{
+                  this.$message({
+                    type: 'success',
+                    message: '添加成功',
+                    customClass: 'top200',
+                    duration:1000
+                  });
+                }
+                this.loading = false;
+                this.fileList2 = [];
+                this.fileList = [];
+                this.addClueForm.contractFile={};
+                this.addClueForm.files=[];
+                if(this.$route.query.id || this.$route.query.parentId){
+                  setTimeout(function() {
+                    that.$router.go(-1);
+                  },1000);
+                }else{
+                  this.resetFormAdd();
+                }
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: response.body.message,
+                  customClass: 'top200',
+                });
+              }
+            });
+          }else {
+            return false;
+          }
+        })
+      },
+    //新建KeyResults
+    newResultsFun:function(){
+      this.newResultsPop = true;
+    },
+    //提交新建
+    newResultsBtnFun:function(item){
+            console.log("====提交新建==")
+            console.log("====item==",item)
+            this.searchForm={
+                id:this.okr.id,
+                kr:item.kr+'修改',
+                krid:item.krid, 
+                progress:item.progress, 
+                confidence: item.confidence
+            }
+            console.log("====searchForm==",this.searchForm)
+            apiAgreementList(this.searchForm).then(res => {
+                console.log("res--",res);
+                if (res.data.code == "200") {
+                    console.log("this.searchForm--",this.searchForm);
+                    console.log("0000");
+                } else {
+                    // this.$toast({
+                    //     message: '网络出错了，请稍后重试',
+                    //     type: 'wrong',
+                    //     duration: '2000'
+                    // })
+                }
+            });
+    },
 
 
     setParamFun(item, index){
@@ -452,13 +542,19 @@ export default {
     pinglunFun(item, index){
       this.checkIndex = null
       this.tcIndex = index
-      console.log("====查看评论==")
+
+      
+
+
+
+
     },
     handleClose(done) {
       console.log("this.okr.user_id===",this.okr.user_id);
       console.log("this.okr",this.okr)
       this.$emit('dialog_show', false)
       done()
+
     },
     deleteOKR() {
       if (this.request_user_id !== this.okr.user_id) {
@@ -510,11 +606,7 @@ export default {
           this.$emit('dialog_show', false)
         }
       })
-    },
-    // 阻止事件传播
-    stopProp: function (e) {
-      e.stopPropagation()
-    },
+    }
   }
 }
 </script>
@@ -540,6 +632,8 @@ z-index: 10;
 .assd.curr {
   display: block;
 }
+
+
 .assd-bt {
     display: -webkit-box;
     display: -ms-flexbox;
@@ -550,6 +644,7 @@ z-index: 10;
     flex: 1;
      color: #999;
      line-height: 28px;
+
 }
 .assd-bt .assd-bt-left span{
   margin:0 3px;
@@ -566,6 +661,7 @@ z-index: 10;
     margin-bottom: 10px;
 }
 .border_b{border-bottom: 1px solid #ececec;margin:10px 0}
+
 .textfile{display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -598,6 +694,7 @@ z-index: 10;
   margin:0 4px;
   color: #409EFF;
   cursor: pointer;
+
 }
 .rightBtn{
     position: absolute;
